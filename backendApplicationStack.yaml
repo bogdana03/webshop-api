@@ -39,67 +39,41 @@ Resources:
     Type: AWS::ElasticBeanstalk::ApplicationVersion
     Properties:
 
-    # TODO: The name of the application must be referenced here. Good practise is to use FN::Ref to refer to the actual resource which created it.
-    # That resource is the one defined with LogicalID BackendApplication above.
+
       ApplicationName:
         Ref: bogdanas-BackendApplication
       Description: Version of application
       SourceBoundel:
         S3Bucket: !Sub "bogdanas-storage"
         S3Key: webshop-api-1.0.0-SNAPSHOT.jar
-    # TODO: Something else here is also missing. We need to define the executable artifact that will run on our servers somehow
 
-    # TIP: The S3 bucket property should be the name of your S3 bucket created in first laboration, EG. 'GROUPNAME-storage'
-    # TIP: The S3 Key property should be the key to your executable jar which we saved to S3 after you completed your java application (When we ran aws s3api put-object...)
-    # In that call, we used setting --key webshop-api-1.0.0-SNAPSHOT.jar, which means that the key is 'webshop-api-1.0.0-SNAPSHOT.jar'
   BackendAppEnvironment:
     Type: AWS::ElasticBeanstalk::Environment
     Properties:
-      ApplicationName: !Ref  BackendApplication # TODO: Missing properties.
+      ApplicationName: !Ref  BackendApplication
       VersionLabel:
         Ref: BackendApplicationVersion
-      EnvironmentName: !Sub bogdanas-BackendAppEnvironment # This uses Fn::Sub function to declare the name of your environment
-      SolutionStackName: 64bit Amazon Linux 2 v3.2.8 running Corretto 11 # TODO: We need to define kind of a "runtime environment" that should be used.
-      # These are predefined setups provided by AWS.
-      # For instance, if we select a stack name for Java 11, your EC2 servers will be
-      # preinstalled with JDK11 and everything that is required to run a Java application on a linux server.
+        EnvironmentName: !Sub bogdanas-BackendAppEnvironment
+        SolutionStackName: 64bit Amazon Linux 2 v3.2.8 running Corretto 11 # TODO: We need to define kind of a "runtime environment" that should be used.
+
 
       OptionSettings:
         - Namespace: aws:autoscaling:launchconfiguration
-          OptionName: IamInstanceProfile # This is a IAM instance profile definition. This basically describes what services your server should have access to
+          OptionName: IamInstanceProfile
           Value: ha-elasticbeanstalk-ec2-role
-      # Here you will have to define a few different options
-      # Options documentation can be found at https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html
 
-      # TODO: From namespace aws:ec2:instances
-      - Namespace: aws:ec2:instances
-        OptionName: InstancesTypes
-        Value: t3.nano
-      # name InstanceTypes
-      # The instance type that should be used is a t3.nano
+        - Namespace: aws:ec2:instances
+          OptionName: InstancesTypes
+          Value: t3.nano
 
-      # TODO: From namespace aws:elasticbeanstalk:environment
-      # name EnvironmentType (IMPORTANT! We want to run a single instance only. Read documentation to get that value)
-      - Namespace: aws:elasticbeanstalk:environment
-        OptionName: EnviormentType
-        Value: SingleInstance
+        - Namespace: aws:elasticbeanstalk:environment
+          OptionName: EnviormentType
+          Value: SingleInstance
 
-      - NameSpace: aws:autoscaling:lounchconfiguration
-        OptionName: SecurityGroups
-        Value: !Ref SecurityGroup
+        - NameSpace: aws:autoscaling:lounchconfiguration
+          OptionName: SecurityGroups
+          Value: !Ref SecurityGroup
 
-
-      # TODO: Read line below.
-      # NOTE: If all TODOs above this one has been removed, you are ready to deploy your application for the first time.
-      # This is probably a good idea to do, to make sure that the work you have done up to here is working.
-      # When that stack has deployed successfully, you can find the URL for your application in AWS UI --> Elastic Beanstalk --> Select your environment.
-      # On that page you should be able to see a URL looking like 'http://GROUPNAME-backendappenvironment.eba-sks9d7ep.eu-north-1.elasticbeanstalk.com/'
-      # When entering that URL, your application should pop up. If that works as expected, you are ready to continue with TODO's below.
-
-
-
-      # TODO: You must also define a security group (AWS::EC2::SecurityGroup) to limit network access to your application.
-      # When defining your security group, the required resources are AWS::EC2::SecurityGroup and
       SecirityGroup:
         Type: AWS::EC2::SecirityGroup
         Properties:
@@ -110,55 +84,13 @@ Resources:
               ToPort: 80
               CidrIp: 128.0.0.0/1
 
-
-
-      # TODO: You must define a rule for your security group, which tells the security group the rules for incoming traffic.
-      # Resource to use for that is AWS::EC2::SecurityGroupIngress
-      # Here you should set IpProtocol to 'tcp'
-
-      # Both From and To ports should be 80 which is default for http protocol.
-      # CIDR range to use is '128.0.0.0/1'
-      # For the GroupId attribute, we must refer to the attribute 'GroupId' from your AWS::EC2::SecurityGroup by using Fn::GetAtt
-
-
-      # NOTE: Might be a good idea to deploy your stack again to see that your security groups are accepted.
-
-
-      # TODO: When your security groups have been defined, you must also tell your AWS::ElasticBeanstalk::Environment to use them.
-      # This is done by adding a new item to the OptionSettings property.
-      # namespace of that setting is 'aws:autoscaling:launchconfiguration' and optionName is "SecurityGroups"
-      # Value must be the name of your security group, which can be accessed by '!Ref YourSecurityGroupLogicalId'
-
       DNSRecord:
-        Type: AWS::RouteS3::RecordSet
-        Proprieties:
-          HostedZoneId: Z0413857YT73ADA8FRFF
-          Name: bogdanas-api.cloud-ha.com
-          ResourceRecords:
-            - !GetAtt B.atributeName
-          TTL: 300
-          Type: A
+      Type: AWS::RouteS3::RecordSet
+      Proprieties:
+        HostedZoneId: Z0413857YT73ADA8FRFF
+        Name: bogdanas-api.cloud-ha.com
+        ResourceRecords:
+         - !GetAtt B.atributeName
+        TTL: 300
+        Type: A
 
-      # TODO: We must also define a DNS record for accessing your application.
-      # A DNS record will tell a DNS server for a specific domain where to route traffic when someone accesses http://GROUPNAME-api.cloud-ha.com
-      # Here you must define a AWS::Route53::RecordSet resource.
-      # You will need to provide the following attributes: Name, Type, HostedZoneId, ResourceRecords, TTL.
-      #
-      # Name: should be 'GROUPNAME-api.cloud-ha.com'
-
-      # Type: 'A' (A type records are used when routing to a IP address. Cname records are common for routing to other domain names like www.example.com)
-
-      # HostedZoneId: Must be 'Z0413857YT73A0A8FRFF'. This is the ID of a Hosted Zone I have created for domain name "cloud-ha.com".
-      #     Good practise would be to refer to this from the export of my template. Unfortunately, i created this in web ui.
-      #     Conclusion is: Do what I tell you, dont do what I do.
-
-      # TTL: This is a attribute for time to live of the DNS record. This can be set to value 300
-
-      # ResourceRecords: This must refer to the IP address created by your AWS::ElasticBeanstalk::Environment.
-      #     We cannot hardcode this, because if we create a stack from this template from scratch there will not be an existing IP address.
-      #     Therefore, we must define this parameter with Fn::GetAtt. See possible return values and attributes at
-      #     https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-beanstalk-environment.html#aws-properties-beanstalk-environment-return-values
-      #
-      # TIP: Try to make sure that your RecordSet seems to be valid before updating it in CFN.
-      # Successful creations/updates of RecordSets are really quick
-      # Unsuccessful creations/updates can take forever for some reason. It might take up to 20 minutes before you get an error response.
