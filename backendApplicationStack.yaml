@@ -38,8 +38,6 @@ Resources:
   BackendApplicationVersion:
     Type: AWS::ElasticBeanstalk::ApplicationVersion
     Properties:
-
-
       ApplicationName:
         Ref: bogdanas-BackendApplication
       Description: Version of application
@@ -53,9 +51,8 @@ Resources:
       ApplicationName: !Ref  BackendApplication
       VersionLabel:
         Ref: BackendApplicationVersion
-        EnvironmentName: !Sub bogdanas-BackendAppEnvironment
-        SolutionStackName: 64bit Amazon Linux 2 v3.2.8 running Corretto 11 # TODO: We need to define kind of a "runtime environment" that should be used.
-
+      EnvironmentName: !Sub bogdanas-BackendAppEnvironment
+      SolutionStackName: 64bit Amazon Linux 2 v3.2.8 running Corretto 11
 
       OptionSettings:
         - Namespace: aws:autoscaling:launchconfiguration
@@ -84,13 +81,13 @@ Resources:
               ToPort: 80
               CidrIp: 128.0.0.0/1
 
-      DNSRecord:
-      Type: AWS::RouteS3::RecordSet
-      Proprieties:
-        HostedZoneId: Z0413857YT73ADA8FRFF
-        Name: bogdanas-api.cloud-ha.com
-        ResourceRecords:
-         - !GetAtt B.atributeName
-        TTL: 300
-        Type: A
+  DNSRecord:
+    Type: AWS::RouteS3::RecordSet
+    Properties:
+      HostedZoneId: Z0413857YT73ADA8FRFF
+      Name: bogdanas-api.cloud-ha.com
+      ResourceRecords:
+      - !GetAtt B.atributeName
+      TTL: 300
+      Type: A
 
